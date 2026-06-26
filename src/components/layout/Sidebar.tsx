@@ -153,7 +153,7 @@ export default function Sidebar() {
                   onClick={() => setActiveModule(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left transition-all relative group cursor-pointer ${
                     isActive
-                      ? 'bg-primary-muted/20 text-primary font-medium border-l-[3px] border-primary rounded-l-none'
+                      ? 'bg-primary-muted text-primary font-bold border-l-[3px] border-primary rounded-l-none'
                       : 'text-text-secondary hover:bg-bg-overlay hover:text-text-primary'
                   }`}
                 >

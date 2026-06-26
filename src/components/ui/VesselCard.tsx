@@ -32,14 +32,14 @@ export default function VesselCard({ vessel, onClick }: VesselCardProps) {
       case 'BlockAssembly':
       case 'ModuleAssembly':
       case 'Erection':
-        return 'text-primary bg-primary-muted/12 border-primary/25';
+        return 'text-primary bg-primary-muted border-primary-strong/20';
       case 'Launch':
       case 'Outfitting':
-        return 'text-warning bg-warning-muted/12 border-warning/25';
+        return 'text-warning bg-warning-muted border-warning/20';
       case 'SeaTrials':
-        return 'text-accent bg-accent-muted/12 border-accent/25';
+        return 'text-accent bg-accent-muted border-accent/20';
       case 'Delivery':
-        return 'text-success bg-success-muted/12 border-accent/25';
+        return 'text-success bg-success-muted border-success/20';
     }
   };
 
