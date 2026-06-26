@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useYardDataStore } from '../../lib/mock-data/store';
-import { Bot, User, Send, ShieldAlert, Sparkles, FileText, ChevronRight, Mic, Check } from 'lucide-react';
+import { Bot, User, Send, ShieldAlert, Sparkles, ChevronRight, Mic, Check } from 'lucide-react';
 import { ChatMessage, CopilotMode } from '../../types/adsb';
 
 const copilotModes = [
@@ -14,21 +14,77 @@ const copilotModes = [
 
 const suggestQueries: Record<string, string[]> = {
   'naval-engineering': [
+    'What is the status of HN-301?',
     'What grade steel is used for HN-301 keel?',
-    'What waterjet systems are fitted with MTU engines?',
+    'Explain steel nesting yield'
   ],
   'maintenance': [
     'Query gantry crane GC-02 health status',
-    'What is the failure downtime of sandblast SBS-02?',
+    'What is the failure downtime of sandblast SBS-02?'
   ],
   'safety': [
-    'Inspect active hot work permits in engine room',
-    'List hazards for confined space double bottom tank',
+    'Are there any open safety breaches?',
+    'Show active Permit-to-Work (PTW) count'
   ],
   'programme': [
-    'Generate weekly progress report for HN-301',
-    'Show milestone delays due to blasting bottleneck',
+    'Show active vessels in shipyard',
+    'Show milestone delays due to blasting bottleneck'
   ]
+};
+
+// Hardcoded ADSB pre-canned answers for the demo
+const adsbPreCannedAnswers: Record<string, string> = {
+  'what is the status of hn-301?': `### 🚢 Vessel Status Profile: HN-301 (Al Noukhitha)
+*   **Programme**: UAE Navy Falaj 3 (Lead Vessel)
+*   **Construction Phase**: Steel Fabrication / Block Assembly
+*   **Completion Rate**: 34.2%
+*   **Last Inspection**: NDT UT check on June 24, 2026 (Weld Joint: \`WJ-HN301-FR42-STBD\`)
+*   **Open NCRs**: 2 active (1 Major weld porosity, 1 Minor paint DFT deviation)
+*   **Schedule Status**: Lagging by 6 days (SPI: 0.94) due to sandblast unit SBS-02 downtime.
+*   **Next Milestones**: Double-bottom block erection (scheduled for July 12, 2026).`,
+
+  'show active vessels': `### 📋 Active Shipyard Construction Log (ADSB Mussafah)
+1.  **HN-301 (Al Noukhitha)**: 62m Missile Boat | Status: **Active** | Completion: **34.2%** | Phase: Steel Fabrication
+2.  **HN-302 (Jalboot)**: 62m Missile Boat | Status: **Active** | Completion: **12.5%** | Phase: Keel Layout
+3.  **HN-201 (Al Hili)**: Falaj 3 OPV | Status: **Active** | Completion: **78.4%** | Phase: Outfitting / Commissioning
+4.  **HN-202 (Murban)**: Falaj 3 OPV | Status: **Active** | Completion: **61.1%** | Phase: Superstructure Fit`,
+
+  'show active vessels in shipyard': `### 📋 Active Shipyard Construction Log (ADSB Mussafah)
+1.  **HN-301 (Al Noukhitha)**: 62m Missile Boat | Status: **Active** | Completion: **34.2%** | Phase: Steel Fabrication
+2.  **HN-302 (Jalboot)**: 62m Missile Boat | Status: **Active** | Completion: **12.5%** | Phase: Keel Layout
+3.  **HN-201 (Al Hili)**: Falaj 3 OPV | Status: **Active** | Completion: **78.4%** | Phase: Outfitting / Commissioning
+4.  **HN-202 (Murban)**: Falaj 3 OPV | Status: **Active** | Completion: **61.1%** | Phase: Superstructure Fit`,
+
+  'are there any open safety breaches?': `### ⚠️ HSE Safety Breach Incident Alert
+*   **Status**: **ACTIVE CRITICAL ALERT**
+*   **Zone**: Build Bay 1 (Drydock Quayside)
+*   **Details**: CCTV Cam-03 flagged a **PPE Hard Hat Violation** at 16:42:15.
+*   **Incident**: Welder (Rajesh Kumar) detected working near Crane GC-02 track boundary without safety helmet.
+*   **Action Taken**: Muster alarm flashed in Zone B, area supervisor paged, incident logged to EDGE Group safety database.`,
+
+  'list current ndt weld defects (joint ids)': `### 🔍 Hull QA/QC Weld Defect Register
+*   **WJ-HN301-FR42-STBD**: Porosity Cluster in Bulkhead Seam | Severity: **Major** | Hold: Bureau Veritas (BV)
+*   **WJ-HN301-FR56-PORT**: Lack of Fusion in Main Deck plate | Severity: **Minor** | Hold: None (Local Rework)
+*   **WJ-HN301-FR12-KEEL**: Slag Inclusion in Bottom Keel Plate | Severity: **Critical** | Hold: Lloyd's Register (LR)
+*   **WJ-HN302-FR05-KEEL**: Porosity in keel backing bar | Severity: **Minor** | Hold: None`,
+
+  'show active permit-to-work (ptw) count': `### 📋 Active Permit-to-Work (PTW) Status
+Total Open Permits: **6 Active**
+*   **Hot Work**: 3 active (\`PTW-HN301-HW-142\` in Keel, \`PTW-HN301-HW-155\` in Superstructure, \`PTW-HN302-HW-05\` in Keel)
+*   **Confined Space**: 2 active (\`PTW-HN301-CS-089\` in Fuel Tank, \`PTW-HN301-CS-112\` in Ballast Tank)
+*   **Working at Heights**: 1 active (\`PTW-HN302-WAH-214\` on Mast Antenna)`,
+
+  'explain steel nesting yield': `### 📐 TII Nesting Optimizer Telemetry
+*   **Nesting Density Yield**: 96.0% (Previous baseline: 82%)
+*   **Scrap Metal Yield**: Reduced to 4.0% (approx. 2.4 tonnes of plate scrap)
+*   **Estimated Cost Reduction**: **$29,600 USD** saved on plasma cutting layouts for HN-301 deck brackets.
+*   **Optimizing Engine**: TII Nesting V4.2`,
+
+  'query gantry crane gc-02 health status': `### ⚙️ Machine Telemetry: Gantry Crane GC-02
+*   **Health Score**: 84% (Warning threshold)
+*   **Critical Sensor**: Brake system temperature is elevated at **89.5°C** (Alarm: 95°C).
+*   **Remaining Useful Life (RUL)**: 82 days.
+*   **Action**: Work Order \`#WO-40291\` dispatched to Maintenance Crew for pad calibration.`
 };
 
 export default function AICopilot() {
@@ -65,36 +121,59 @@ export default function AICopilot() {
     setMessages((prev) => [...prev, userMsg]);
     setLoading(true);
 
-    const apiKey = import.meta.env.VITE_GROK_API_KEY;
+    const queryLower = textToSend.toLowerCase().trim();
 
-    try {
-      if (apiKey) {
-        // Real Live xAI Grok call!
-        const res = await fetch('https://api.x.ai/v1/chat/completions', {
+    // 1. Check if we have a pre-canned ADSB answer for the demo
+    if (adsbPreCannedAnswers[queryLower]) {
+      await new Promise((resolve) => setTimeout(resolve, 800)); // simulated thinking delay
+      const assistantMsg: ChatMessage = {
+        id: `msg_assistant_${Date.now()}`,
+        role: 'assistant',
+        content: adsbPreCannedAnswers[queryLower],
+        timestamp: new Date().toISOString()
+      };
+      setMessages((prev) => [...prev, assistantMsg]);
+      setLoading(false);
+      return;
+    }
+
+    // 2. Otherwise execute Groq LLM API call
+    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+    const model = import.meta.env.VITE_GROQ_MODEL || 'openai/gpt-oss-120b';
+
+    if (apiKey) {
+      try {
+        // Attempt Groq completion fetch
+        const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${apiKey}`
           },
           body: JSON.stringify({
-            model: 'grok-beta',
+            model: model,
             messages: [
               {
                 role: 'system',
-                content: `You are ADSB NavalOS Copilot, an AI naval operating system assistant built for Abu Dhabi Ship Building (ADSB). 
+                content: `You are ADSB NavalOS Copilot, an AI naval operating system assistant built for Abu Dhabi Ship Building (ADSB).
                 The user has clearance tier 5 (Executive). Mode active: ${activeMode}. 
-                Respond concisely using shipyard terminology like HN-301, hull numbers, Lloyd's Register rules, MTU engines, etc.`
+                Respond concisely using shipyard terminology like HN-301, hull numbers, Lloyd's Register rules, MTU engines, weld joint IDs, etc.
+                Ensure you are friendly, brief, and structure your responses with markdown bullet points where appropriate.`
               },
               ...messages.map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: m.content })),
               { role: 'user', content: textToSend }
             ],
-            temperature: 0.2
+            temperature: 0.7,
+            max_tokens: 1024
           })
         });
 
-        if (!res.ok) throw new Error('Failed to reach Grok API');
+        if (!res.ok) {
+          // If the custom model fails or is rate-limited, fallback to standard Llama model on Groq
+          throw new Error('Groq custom model failed');
+        }
+
         const data = await res.json();
-        
         const assistantMsg: ChatMessage = {
           id: `msg_assistant_${Date.now()}`,
           role: 'assistant',
@@ -102,81 +181,57 @@ export default function AICopilot() {
           timestamp: new Date().toISOString()
         };
         setMessages((prev) => [...prev, assistantMsg]);
-      } else {
-        // Fallback Intelligent ADSB-specific Mock Assistant Response
-        await new Promise((resolve) => setTimeout(resolve, 800));
-        let responseText = '';
-
-        const query = textToSend.toLowerCase();
-
-        if (query.includes('weekly progress report') || query.includes('generate weekly')) {
-          responseText = `### WEEKLY SHIPYARD OPERATIONS REPORT: HN-301 AL NOUKHITHA
-Date: ${new Date().toLocaleDateString()}
-Compiled By: ADSB Operations Intelligence Copilot
-
-1. STATUS OVERVIEW
-- Completion Rate: 34% (Steel Fabrication phase)
-- SPI: 0.94 (Lagging by 6 days due to SBS-02 sandblast compressor downtime)
-- CPI: 0.97 (Cost parameters holding within contingency threshold)
-
-2. COMPLETED MILESTONES
-- Design Freeze [Completed: 2025-06-12]
-- Steel Cutting [Completed: 2025-09-28]
-
-3. CRITICAL ACTIONS (NEXT 14 DAYS)
-- Rectify compressor pump at SBS-02 to restart block surface blasting.
-- Renew welder certification WQ-47 (Rajesh Kumar, SMAW 6G) prior to double-bottom assembly welds.
-
-*Report compiled under executive clearance tier 5 constraints.*`;
-        } else if (activeMode === 'naval-engineering') {
-          if (query.includes('engine') || query.includes('propulsion')) {
-            responseText = "**MTU 16V 4000 M93L** engine sets are integrated with **Kongsberg Kamewa S63-4** waterjets. Rated power output is 4,300 HP per engine at 2,100 RPM. Typical outfitting schedule assigns block mount positioning 14 days before superstructure erection.";
-          } else if (query.includes('steel') || query.includes('grade') || query.includes('keel')) {
-            responseText = "ADSB Hull fabrication utilizes high-tensile structural steel: **DH36** (high-strength, qualified for low temperatures) for bottom structures and **AH36** for deck bulkheads. Weld certification requires ISO 9606-1 standard validation.";
-          } else {
-            responseText = "Naval Engineering Database query complete. Reference design file [GA-HN301-REV3.dwg] shows the structural frame layout of the Al-Dorra missile boat class. Is there a specific component specification you need?";
-          }
-        } else if (activeMode === 'maintenance') {
-          if (query.includes('crane') || query.includes('gc02')) {
-            responseText = "Gantry Crane **GC-02** shows an elevated brake temperature sensor reading of **89.5°C** (Warning threshold: 95°C). RUL is estimated at 82 days. Work Order #WO-40291 was scheduled for visual calibration.";
-          } else if (query.includes('sbs02') || query.includes('blasting')) {
-            responseText = "Sandblasting unit **SBS-02** is currently flagged as **FAULT** due to air intake pressure dropping below 3.5 Bar. Active downtime is **74 hours**, causing 6 days block assembly lag for HN-301. Priority Work Order generated.";
-          } else {
-            responseText = "Asset health parameters normal across panel lines. Standard preventive cycle for plasma cutters (PCT-01/02) requires nozzle inspection every 40 arc-hours.";
-          }
-        } else if (activeMode === 'safety') {
-          if (query.includes('permit') || query.includes('hot') || query.includes('engine')) {
-            responseText = "Active hot work permits in **Zone B3 (HN-301 Engine Room)** stands at **4**. Confined space entry checks require continuous O2 monitor checks (current telemetry: 20.9% - Safe). Minimum Safety Watch is 1 Safety Officer per 3 active welders.";
-          } else {
-            responseText = "Permit-to-work guidelines for ADSB shipyard require: Gas testing every 4 hours for confined spaces, high-vis harness anchors above 1.8m height, and dry-powder extinguisher standing by at hot work zones.";
-          }
-        } else if (activeMode === 'programme') {
-          responseText = "Vessel Programme analysis: **HN-301** (Al Noukhitha) is at **34% completion** in Steel Fabrication phase. Launch milestone is scheduled for **Nov 28, 2026** (forecast deviation: +8 days due to SBS-02 downtime). SPI is 0.94.";
-        } else if (activeMode === 'executive') {
-          responseText = "Consolidated Executive Summary: Overall shipyard SPI is 0.98, CPI is 0.96. Active programmes value is $245M. Angolan BR71 Corvette Program HN-202 is running 2 days ahead of schedule in block assembly.";
-        } else {
-          responseText = "Document intelligence parsed 4 related Lloyd's Register naval rules files. Reference Chapter 4, Section 2: 'Hull Weld Structural Integrity - Non-destructive Testing (NDT) guidelines'. All butt joints require 100% UT scanning.";
+      } catch (err) {
+        // Fallback retry using standard groq model llama3-8b-8192
+        try {
+          const fallbackRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+              model: 'llama3-8b-8192',
+              messages: [
+                {
+                  role: 'system',
+                  content: `You are ADSB NavalOS Copilot, an AI naval operating system assistant built for Abu Dhabi Ship Building (ADSB). Mode: ${activeMode}. Respond using shipyard terms.`
+                },
+                { role: 'user', content: textToSend }
+              ]
+            })
+          });
+          const fallbackData = await fallbackRes.json();
+          const assistantMsg: ChatMessage = {
+            id: `msg_assistant_${Date.now()}`,
+            role: 'assistant',
+            content: fallbackData.choices[0].message.content,
+            timestamp: new Date().toISOString()
+          };
+          setMessages((prev) => [...prev, assistantMsg]);
+        } catch (innerErr) {
+          const errMsg: ChatMessage = {
+            id: `msg_err_${Date.now()}`,
+            role: 'assistant',
+            content: "Operational Telemetry Error: Failed to generate response from Groq. Pre-canned prompts work immediately.",
+            timestamp: new Date().toISOString()
+          };
+          setMessages((prev) => [...prev, errMsg]);
         }
-
-        const assistantMsg: ChatMessage = {
-          id: `msg_assistant_${Date.now()}`,
-          role: 'assistant',
-          content: responseText,
-          timestamp: new Date().toISOString()
-        };
-        setMessages((prev) => [...prev, assistantMsg]);
       }
-    } catch (err) {
-      const errMsg: ChatMessage = {
-        id: `msg_err_${Date.now()}`,
+    } else {
+      // Offline fallback
+      await new Promise((resolve) => setTimeout(resolve, 800));
+      const assistantMsg: ChatMessage = {
+        id: `msg_assistant_${Date.now()}`,
         role: 'assistant',
-        content: "Operational Telemetry Error: Failed to generate Copilot response. Please verify system network status or Grok API configuration.",
+        content: `I received: "${textToSend}". To see custom responses, select one of the pre-canned suggest queries at the bottom, or verify your .env VITE_GROQ_API_KEY credentials.`,
         timestamp: new Date().toISOString()
       };
-      setMessages((prev) => [...prev, errMsg]);
-    } finally {
-      setLoading(false);
+      setMessages((prev) => [...prev, assistantMsg]);
     }
+
+    setLoading(false);
   };
 
   const handleSuggestClick = (queryText: string) => {
@@ -254,7 +309,7 @@ Compiled By: ADSB Operations Intelligence Copilot
               <ShieldAlert className="w-3.5 h-3.5 text-warning" />
               Clearance Tier 5 Mode
             </div>
-            Grok LLM engine initialized. Active context windows trace Lloyds Rules and MTU engine schematics.
+            Groq SDK API client initialized with model: VITE_GROQ_MODEL. Context windows trace Lloyds Rules and MTU engine schematics.
           </div>
         </div>
       </div>
@@ -299,7 +354,7 @@ Compiled By: ADSB Operations Intelligence Copilot
                     ? 'bg-bg-elevated border-border text-text-primary'
                     : 'bg-primary-muted/15 border-primary/30 text-text-primary'
                 }`}>
-                  <div className="whitespace-pre-line font-medium">{msg.content}</div>
+                  <div className="whitespace-pre-line font-medium prose prose-invert">{msg.content}</div>
                   <span className="text-[9px] text-text-muted block text-right mt-1.5 select-none">
                     {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                   </span>

@@ -71,8 +71,8 @@ export const mockWorkspaces: Workspace[] = [
   },
   {
     id: 'uae-navy',
-    name: 'UAE Navy OPV Programme',
-    shortName: 'UAE Navy OPV',
+    name: 'UAE Navy – Falaj 3',
+    shortName: 'UAE Navy F3',
     description: 'Ongoing Falaj 3-class offshore patrol vessels and refit contracts for UAE Navy',
     location: 'Mussafah Yard / Abu Dhabi Naval Base',
     programme: 'UAE',
@@ -83,21 +83,8 @@ export const mockWorkspaces: Workspace[] = [
     icon: 'Shield'
   },
   {
-    id: 'commercial',
-    name: 'Commercial Marine Repair',
-    shortName: 'Commercial',
-    description: 'ADNOC vessels and commercial fleet maintenance & dry-docking',
-    location: 'Mussafah / Mina Zayed',
-    programme: 'Commercial',
-    activeVessels: 4,
-    personnel: 85,
-    alertCount: 1,
-    status: 'Active',
-    icon: 'Wrench'
-  },
-  {
     id: 'edge-corporate',
-    name: 'EDGE Group Corporate View',
+    name: 'Corporate / EDGE Group',
     shortName: 'EDGE Group',
     description: 'Group-level executive oversight and consolidation dashboard',
     location: 'EDGE Group HQ, Abu Dhabi',

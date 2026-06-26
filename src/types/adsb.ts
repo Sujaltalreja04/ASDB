@@ -55,7 +55,7 @@ export type PermitType =
   | 'CraneOperation'
   | 'GeneralAccess';
 
-export type PermitStatus = 'Draft' | 'PendingSupervisor' | 'PendingHSE' | 'PendingManager' | 'Active' | 'Closed' | 'Cancelled' | 'Expired';
+export type PermitStatus = 'Draft' | 'PendingSupervisor' | 'PendingHSE' | 'PendingManager' | 'Active' | 'Closed' | 'Cancelled' | 'Expired' | 'Suspended';
 
 export type AssetStatus = 'Operational' | 'Maintenance' | 'Fault' | 'Idle' | 'Offline';
 
